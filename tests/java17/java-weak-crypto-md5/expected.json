@@ -1,0 +1,8 @@
+{
+  "rule": "java-weak-crypto-md5",
+  "cwe": "CWE-328",
+  "source": "NIST/SAMATE Juliet Test Suite for Java 1.3, CWE328_Reversible_One_Way_Hash__MD5_01.java (CC0 1.0), excerpted via github.com/find-sec-bugs/juliet-test-suite",
+  "findings": [
+    { "file": "vulnerable.java", "line": 7, "severity": "WARNING" }
+  ]
+}

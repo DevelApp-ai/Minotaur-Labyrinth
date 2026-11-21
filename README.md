@@ -34,6 +34,9 @@ rules/
   cpp20/
 scripts/
   validate_rules.py       # pack validation (mirrors Minotaur's LabyrinthRuleLoader)
+  validate_corpus.py      # test-corpus validation (layout + expected.json schema)
+tests/                    # per-rule test corpus (vulnerable/safe samples + expected findings)
+  README.md               #   layout, sources, licenses — see tests/README.md
 ```
 
 `rules/<language>/` holds **language-specific** rules: each pattern is a
@@ -107,6 +110,20 @@ rules need `pattern`, taint rules need `sources` + `sinks`, propagator
 ```bash
 python3 scripts/validate_rules.py rules/
 ```
+
+## Test corpus
+
+`tests/` holds the per-rule test corpus: `tests/<grammar-dir>/<rule-id>/` with
+`vulnerable.<ext>` (must trigger the rule), `safe.<ext>` (must not) and
+`expected.json` (ground-truth findings + provenance). Validate its structure
+with:
+
+```bash
+python3 scripts/validate_corpus.py tests/ rules/
+```
+
+See [tests/README.md](tests/README.md) for the layout, the corpus sources
+(NIST/SAMATE Juliet, OWASP Benchmark, SecBench.js, ...) and their licenses.
 
 ## Licensing
 

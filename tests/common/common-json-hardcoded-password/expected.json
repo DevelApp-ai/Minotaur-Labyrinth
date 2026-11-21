@@ -1,0 +1,8 @@
+{
+  "rule": "common-json-hardcoded-password",
+  "cwe": "CWE-798",
+  "source": "Authored for Minotaur-Labyrinth (CWE-798 hardcoded credentials); language-neutral config-grammar case",
+  "findings": [
+    { "file": "vulnerable.json", "line": 3, "severity": "ERROR" }
+  ]
+}

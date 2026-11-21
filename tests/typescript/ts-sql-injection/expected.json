@@ -1,0 +1,8 @@
+{
+  "rule": "ts-sql-injection",
+  "cwe": "CWE-89",
+  "source": "Authored for Minotaur-Labyrinth; CWE-89 node-postgres shape (cf. SecBench.js server-side JS vulnerabilities)",
+  "findings": [
+    { "file": "vulnerable.ts", "line": 6, "severity": "ERROR" }
+  ]
+}

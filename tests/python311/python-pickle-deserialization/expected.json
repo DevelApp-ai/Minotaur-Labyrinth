@@ -1,0 +1,8 @@
+{
+  "rule": "python-pickle-deserialization",
+  "cwe": "CWE-502",
+  "source": "Authored for Minotaur-Labyrinth; CWE-502 pickle.loads pattern (cf. PyVul / SecCodeBench-V2 Python deserialization cases)",
+  "findings": [
+    { "file": "vulnerable.py", "line": 6, "severity": "ERROR" }
+  ]
+}

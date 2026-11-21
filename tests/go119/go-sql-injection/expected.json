@@ -1,0 +1,8 @@
+{
+  "rule": "go-sql-injection",
+  "cwe": "CWE-89",
+  "source": "Authored for Minotaur-Labyrinth; CWE-89 net/http shape (public Go SAST corpora are thin; cf. PrimeVul / RealVuln)",
+  "findings": [
+    { "file": "vulnerable.go", "line": 13, "severity": "ERROR" }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "rule": "java-sql-injection",
+  "cwe": "CWE-89",
+  "source": "Authored for Minotaur-Labyrinth; OWASP Benchmark CWE-89 servlet pattern (OWASP/Benchmark, Apache-2.0): request.getParameter -> Statement.executeQuery",
+  "findings": [
+    { "file": "vulnerable.java", "line": 10, "severity": "ERROR" }
+  ]
+}
