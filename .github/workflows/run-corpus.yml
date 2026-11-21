@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: DevelApp-ai/Minotaur
-          ref: vibe/labyrinth-scan-cli-ab407c
+          ref: main
           path: minotaur
       - uses: actions/setup-dotnet@v5
         with:
