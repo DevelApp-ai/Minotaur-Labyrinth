@@ -1,5 +1,13 @@
 name: run-corpus
 
+# Engine-level corpus run via Minotaur.Cli (`labyrinth verify-corpus`).
+# Advisory (continue-on-error) until Minotaur#247 (Pattern v2: receiver
+# binding, operator nodes, IndexAccess, non-call RHS) lands: today the
+# expression compiler supports only call / assignment / bare-metavar shapes,
+# so most seeded patterns report "unsupported shape" (see Minotaur#246 gap
+# analysis). Tracked in Minotaur-Labyrinth#3 / tracker #9. Becomes a required
+# check once #247 is merged.
+
 on:
   push:
     branches: [main]
@@ -9,7 +17,8 @@ on:
 jobs:
   engine-run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
