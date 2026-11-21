@@ -1,0 +1,8 @@
+{
+  "rule": "python-eval",
+  "cwe": "CWE-95",
+  "source": "Authored for Minotaur-Labyrinth; CWE-95 eval() pattern (cf. PyVul / Bandit B307 baseline runs)",
+  "findings": [
+    { "file": "vulnerable.py", "line": 5, "severity": "ERROR" }
+  ]
+}

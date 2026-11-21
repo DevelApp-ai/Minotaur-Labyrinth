@@ -1,0 +1,8 @@
+{
+  "rule": "csharp-command-injection",
+  "cwe": "CWE-78",
+  "source": "Authored for Minotaur-Labyrinth; OWASP Benchmark CWE-78 pattern (OWASP/Benchmark, Apache-2.0) adapted to ASP.NET Request.Query",
+  "findings": [
+    { "file": "vulnerable.cs", "line": 8, "severity": "ERROR" }
+  ]
+}

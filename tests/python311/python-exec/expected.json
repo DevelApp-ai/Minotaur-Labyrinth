@@ -1,0 +1,8 @@
+{
+  "rule": "python-exec",
+  "cwe": "CWE-95",
+  "source": "Authored for Minotaur-Labyrinth; CWE-95 exec() pattern (cf. PyVul / Bandit B102 baseline runs)",
+  "findings": [
+    { "file": "vulnerable.py", "line": 5, "severity": "ERROR" }
+  ]
+}

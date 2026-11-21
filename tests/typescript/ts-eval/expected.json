@@ -1,0 +1,8 @@
+{
+  "rule": "ts-eval",
+  "cwe": "CWE-95",
+  "source": "Authored for Minotaur-Labyrinth; CWE-95 eval() pattern (cf. SecBench.js code-evaluation cases)",
+  "findings": [
+    { "file": "vulnerable.ts", "line": 3, "severity": "ERROR" }
+  ]
+}

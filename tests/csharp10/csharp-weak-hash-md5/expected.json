@@ -1,0 +1,8 @@
+{
+  "rule": "csharp-weak-hash-md5",
+  "cwe": "CWE-327",
+  "source": "Authored for Minotaur-Labyrinth; MD5.Create() pattern per NIST/SAMATE Juliet 1.3 CWE-328 MD5 case (CC0 1.0), ported to C#",
+  "findings": [
+    { "file": "vulnerable.cs", "line": 8, "severity": "WARNING" }
+  ]
+}

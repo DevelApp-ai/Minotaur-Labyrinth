@@ -1,0 +1,8 @@
+{
+  "rule": "java-command-injection",
+  "cwe": "CWE-78",
+  "source": "Authored for Minotaur-Labyrinth; OWASP Benchmark CWE-78 servlet pattern (OWASP/Benchmark, Apache-2.0): request.getParameter -> Runtime.exec",
+  "findings": [
+    { "file": "vulnerable.java", "line": 7, "severity": "ERROR" }
+  ]
+}
