@@ -1,0 +1,72 @@
+# C# (CSharp10 grammar + Labyrinth.extension overlay) SAST rules.
+rules:
+  - id: csharp-sql-injection
+    severity: ERROR
+    message: "SQL statement is built from untrusted request data; use parameterized queries instead."
+    type: taint
+    sources:
+      - pattern: "Request.Query[$DATA]"
+      - pattern: "Request.Form[$DATA]"
+      - pattern: "Request.Params[$DATA]"
+    sinks:
+      - pattern: "$CMD.CommandText = $SQL"
+      - pattern: "$CMD.ExecuteReader($SQL)"
+      - pattern: "$CMD.ExecuteNonQuery($SQL)"
+      - pattern: "$CMD.ExecuteScalar($SQL)"
+    propagators:
+      - pattern: "$SQL = $DATA"
+        from: $DATA
+        to: $SQL
+      - pattern: "$SQL = $PREFIX + $DATA"
+        from: $DATA
+        to: $SQL
+      - pattern: "$SQL = string.Format($FMT, $DATA)"
+        from: $DATA
+        to: $SQL
+    sanitizers:
+      - pattern: "$CMD.Parameters.AddWithValue($NAME, $SQL)"
+  - id: csharp-command-injection
+    severity: ERROR
+    message: "OS command is built from untrusted request data; avoid invoking processes with user input."
+    type: taint
+    sources:
+      - pattern: "Request.Query[$DATA]"
+      - pattern: "Request.Form[$DATA]"
+    sinks:
+      - pattern: "Process.Start($FILE, $ARGS)"
+      - pattern: "$PSI.Arguments = $ARGS"
+    propagators:
+      - pattern: "$ARGS = $DATA"
+        from: $DATA
+        to: $ARGS
+      - pattern: "$ARGS = $PREFIX + $DATA"
+        from: $DATA
+        to: $ARGS
+  - id: csharp-path-traversal
+    severity: ERROR
+    message: "File path is built from untrusted request data; validate and canonicalize paths before file access."
+    type: taint
+    sources:
+      - pattern: "Request.Query[$DATA]"
+      - pattern: "Request.Form[$DATA]"
+    sinks:
+      - pattern: "File.Open($PATH, ...)"
+      - pattern: "File.ReadAllText($PATH)"
+      - pattern: "File.Delete($PATH)"
+    propagators:
+      - pattern: "$PATH = $DATA"
+        from: $DATA
+        to: $PATH
+      - pattern: "$PATH = $PREFIX + $DATA"
+        from: $DATA
+        to: $PATH
+  - id: csharp-weak-hash-md5
+    severity: WARNING
+    message: "MD5 is a broken hash function; use SHA-256 or stronger for security purposes."
+    type: search
+    pattern: "MD5.Create()"
+  - id: csharp-insecure-deserialization
+    severity: ERROR
+    message: "BinaryFormatter deserialization of untrusted data can lead to remote code execution; use a safe serializer."
+    type: search
+    pattern: "new BinaryFormatter().Deserialize($STREAM)"

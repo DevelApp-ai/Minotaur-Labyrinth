@@ -1,0 +1,63 @@
+# Python 3.11 (Python311 grammar + Labyrinth.extension overlay) SAST rules.
+rules:
+  - id: python-sql-injection
+    severity: ERROR
+    message: "SQL query is built from untrusted request data; use parameterized queries instead."
+    type: taint
+    sources:
+      - pattern: "request.args[$DATA]"
+      - pattern: "request.form[$DATA]"
+      - pattern: "request.data"
+    sinks:
+      - pattern: "cursor.execute($SQL)"
+      - pattern: "db.execute($SQL)"
+    propagators:
+      - pattern: "$SQL = $DATA"
+        from: $DATA
+        to: $SQL
+      - pattern: "$SQL = $FMT % $DATA"
+        from: $DATA
+        to: $SQL
+      - pattern: "$SQL = $PREFIX + $DATA"
+        from: $DATA
+        to: $SQL
+    sanitizers:
+      - pattern: "cursor.execute($SQL, $PARAMS)"
+  - id: python-command-injection-shell
+    severity: ERROR
+    message: "Shell command is built from untrusted request data; avoid shell=True with user input."
+    type: taint
+    sources:
+      - pattern: "request.args[$DATA]"
+      - pattern: "request.form[$DATA]"
+      - pattern: "request.data"
+    sinks:
+      - pattern: "subprocess.run($CMD, shell=True)"
+      - pattern: "subprocess.call($CMD, shell=True)"
+      - pattern: "os.system($CMD)"
+    propagators:
+      - pattern: "$CMD = $DATA"
+        from: $DATA
+        to: $CMD
+      - pattern: "$CMD = $FMT % $DATA"
+        from: $DATA
+        to: $CMD
+  - id: python-pickle-deserialization
+    severity: ERROR
+    message: "pickle.loads on untrusted request data can execute arbitrary code; use a safe format like JSON."
+    type: taint
+    sources:
+      - pattern: "request.data"
+      - pattern: "request.args[$DATA]"
+    sinks:
+      - pattern: "pickle.loads($DATA)"
+  - id: python-eval
+    severity: ERROR
+    message: "eval() on untrusted input can execute arbitrary code."
+    type: search
+    pattern: "eval($X)"
+  - id: python-exec
+    severity: ERROR
+    message: "exec() on untrusted input can execute arbitrary code."
+    type: search
+    pattern: "exec($X)"

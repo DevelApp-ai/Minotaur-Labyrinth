@@ -1,0 +1,35 @@
+# C++20 (Cpp20 grammar + Labyrinth.extension overlay) SAST rules.
+rules:
+  - id: cpp-command-injection
+    severity: ERROR
+    message: "OS command is built from untrusted input (argv); avoid system() with user-controlled strings."
+    type: taint
+    sources:
+      - pattern: "argv[$IDX]"
+    sinks:
+      - pattern: "system($CMD)"
+      - pattern: "popen($CMD, ...)"
+    propagators:
+      - pattern: "$CMD = $DATA"
+        from: $DATA
+        to: $CMD
+  - id: cpp-strcpy-buffer-overflow
+    severity: ERROR
+    message: "strcpy() does not bounds-check the destination; use strncpy/strlcpy or std::string."
+    type: search
+    pattern: "strcpy($DST, $SRC)"
+  - id: cpp-sql-injection
+    severity: ERROR
+    message: "SQL statement is built from untrusted input; use bound parameters instead."
+    type: taint
+    sources:
+      - pattern: "argv[$IDX]"
+    sinks:
+      - pattern: "sqlite3_exec($DB, $SQL, ...)"
+    propagators:
+      - pattern: "$SQL = $DATA"
+        from: $DATA
+        to: $SQL
+      - pattern: "$SQL = $PREFIX + $DATA"
+        from: $DATA
+        to: $SQL

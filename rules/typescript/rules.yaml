@@ -1,0 +1,43 @@
+# TypeScript (TypeScript grammar + Labyrinth.extension overlay) SAST rules.
+rules:
+  - id: ts-xss-innerhtml
+    severity: ERROR
+    message: "Untrusted request data is assigned to innerHTML; use textContent or escape the data."
+    type: taint
+    sources:
+      - pattern: "req.query[$DATA]"
+      - pattern: "req.body[$DATA]"
+    sinks:
+      - pattern: "$EL.innerHTML = $HTML"
+      - pattern: "document.write($HTML)"
+    propagators:
+      - pattern: "$HTML = $DATA"
+        from: $DATA
+        to: $HTML
+      - pattern: "$HTML = $PREFIX + $DATA"
+        from: $DATA
+        to: $HTML
+    sanitizers:
+      - pattern: "$EL.textContent = $HTML"
+  - id: ts-sql-injection
+    severity: ERROR
+    message: "SQL query is built from untrusted request data; use parameterized queries instead."
+    type: taint
+    sources:
+      - pattern: "req.query[$DATA]"
+      - pattern: "req.body[$DATA]"
+    sinks:
+      - pattern: "db.query($SQL)"
+      - pattern: "pool.query($SQL)"
+    propagators:
+      - pattern: "$SQL = $DATA"
+        from: $DATA
+        to: $SQL
+      - pattern: "$SQL = $PREFIX + $DATA"
+        from: $DATA
+        to: $SQL
+  - id: ts-eval
+    severity: ERROR
+    message: "eval() on untrusted input can execute arbitrary code."
+    type: search
+    pattern: "eval($X)"
