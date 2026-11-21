@@ -61,6 +61,30 @@ See [Minotaur's Labyrinth Rule Author Guide](https://github.com/DevelApp-ai/Mino
 for the engine contract (rule schema, metavariables, ellipsis, Dynamic LINQ
 `condition:`, reporting, baselines, exit codes).
 
+### Scanning with the Minotaur CLI
+
+The fastest way to run this pack is the `Minotaur.Cli` console app (merged in
+[DevelApp-ai/Minotaur#245](https://github.com/DevelApp-ai/Minotaur/pull/245)):
+
+```bash
+# from a Minotaur checkout
+dotnet run --project src/Minotaur.Cli -- labyrinth scan \
+  --rules /path/to/Minotaur-Labyrinth/rules \
+  --grammar java17 \
+  --src /path/to/target-project \
+  --sarif labyrinth.sarif
+```
+
+- `--rules` accepts this repo's pack root (`rules/`) — then only
+  `rules/<grammar>` is loaded — or a single pack directory.
+- `--grammar` is a `LabyrinthTargetGrammars` directory name (`labyrinth grammars`
+  lists them); `--ext` overrides the default extension filter.
+- Exit codes: `0` no reportable findings, `1` findings, `2` configuration error.
+  Use `--write-baseline labyrinth-baseline.json` after triage and `--baseline`
+  in CI so only new findings break the build.
+- `labyrinth verify-corpus --rules rules --tests tests` runs this repo's `tests/`
+  corpus through the engine (see [Test corpus](#test-corpus)).
+
 ## Rule file format
 
 Each file is a `rules:` list. Rule keys, in order:
