@@ -1,12 +1,10 @@
 name: run-corpus
 
 # Engine-level corpus run via Minotaur.Cli (`labyrinth verify-corpus`).
-# Advisory (continue-on-error) until Minotaur#247 (Pattern v2: receiver
-# binding, operator nodes, IndexAccess, non-call RHS) lands: today the
-# expression compiler supports only call / assignment / bare-metavar shapes,
-# so most seeded patterns report "unsupported shape" (see Minotaur#246 gap
-# analysis). Tracked in Minotaur-Labyrinth#3 / tracker #9. Becomes a required
-# check once #247 is merged.
+# Signal run against the engine bump branch (Minotaur#275: StepLexer/StepParser
+# 1.91.0 -> 1.100.1; upstream-verified fix for the exploratory-path hang, see
+# ENFAStepLexer-StepParser#176). Once #275 merges this switches to ref: main and
+# becomes a required check (tracked in #3 / tracker #9). Advisory until then.
 
 on:
   push:
@@ -24,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: DevelApp-ai/Minotaur
-          ref: main
+          ref: vibe/step-parser-bump-1-100-ab407c
           path: minotaur
       - uses: actions/setup-dotnet@v5
         with:
