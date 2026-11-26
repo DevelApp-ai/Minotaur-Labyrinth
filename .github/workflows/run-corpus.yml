@@ -3,8 +3,13 @@ name: run-corpus
 # Engine-level corpus run via Minotaur.Cli (`labyrinth verify-corpus`).
 # Signal run against the engine bump branch (Minotaur#275: StepLexer/StepParser
 # 1.91.0 -> 1.100.1; upstream-verified fix for the exploratory-path hang, see
-# ENFAStepLexer-StepParser#176). Once #275 merges this switches to ref: main and
-# becomes a required check (tracked in #3 / tracker #9). Advisory until then.
+# ENFAStepLexer-StepParser#176). Measured on 1.100.1 (run 45911936517): the run
+# completes in ~30s (no more hang); 6/32 cases PASS, 26 FAIL — all FAILs are
+# engine pattern-surface gaps (object literals, receiver-index, multi-token call
+# args, `new`, chained calls, keyword args, `::` paths, blocks, xml content),
+# tracked in Minotaur#278 (+ #276 for op:as tiling). Once #275 merges this
+# switches to ref: main; it becomes a REQUIRED check once the #278 shapes land
+# and the corpus is green (tracked in #3 / #5, tracker #9). Advisory until then.
 
 on:
   push:
