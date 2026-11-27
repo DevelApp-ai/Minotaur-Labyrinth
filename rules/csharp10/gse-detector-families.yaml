@@ -1,0 +1,43 @@
+# GSE detector-family rules for the graph-symbolic-execution article (Minotaur#246 Track GSE L2),
+# ported from DevelApp-ai/Minotaur rules/csharp10 (PR #251) into this pack. All four shapes are
+# verified PASS through `minotaur labyrinth verify-corpus` on engine 1.100.1 (Labyrinth PR #1 run
+# 45911936517 + Minotaur PR #275 CI run 45911052114). csharp-unsafe-as-cast-deref is intentionally
+# omitted until Minotaur#276 (op:as tiling) lands.
+rules:
+- id: csharp-array-index-unvalidated-input
+  severity: ERROR
+  message: Unvalidated external input flows into an array index; parse or range-check it before use.
+  type: taint
+  sources:
+  - pattern: $TARGET = ReadLine(...)
+  sanitizers:
+  - pattern: Parse($TARGET)
+  sinks:
+  - pattern: $ARR[$TARGET]
+- id: csharp-divide-by-constant-zero
+  severity: ERROR
+  message: Division by the constant zero; the divisor literal is 0 and not data-dependent.
+  type: search
+  pattern: $A / 0
+- id: csharp-modulo-by-constant-zero
+  severity: ERROR
+  message: Remainder by the constant zero; the modulus literal is 0 and not data-dependent.
+  type: search
+  pattern: $A % 0
+- id: csharp-null-deref-unguarded-maybe-null
+  severity: ERROR
+  message: Value from a maybe-null API (FirstOrDefault/SingleOrDefault/Find) is dereferenced without a null guard.
+  type: taint
+  sources:
+  - pattern: $TARGET = $DATA.FirstOrDefault(...)
+  - pattern: $TARGET = $DATA.SingleOrDefault(...)
+  - pattern: $TARGET = $DATA.Find(...)
+  sanitizers:
+  - pattern: ArgumentNullException.ThrowIfNull($TARGET)
+  - pattern: $TARGET = $TARGET ?? $FALLBACK
+  sinks:
+  - pattern: $TARGET.ToString()
+  - pattern: $TARGET.Equals(...)
+  - pattern: $TARGET.GetHashCode()
+  - pattern: $TARGET.Clone()
+  - pattern: $TARGET.Dispose()
