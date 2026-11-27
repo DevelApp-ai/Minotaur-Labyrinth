@@ -1,0 +1,8 @@
+{
+  "rule": "go-command-injection",
+  "cwe": "CWE-78",
+  "source": "Authored for Minotaur-Labyrinth; CWE-78 'sh -c' via exec.Command with r.FormValue (public Go corpora thin; cf. PrimeVul/RealVuln)",
+  "findings": [
+    { "file": "vulnerable.go", "line": 11, "severity": "ERROR" }
+  ]
+}

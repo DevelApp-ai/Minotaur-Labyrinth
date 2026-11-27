@@ -1,0 +1,12 @@
+{
+  "rule": "csharp-array-index-unvalidated-input",
+  "cwe": "CWE-125",
+  "source": "Ported from DevelApp-ai/Minotaur rules/csharp10 (PR #251, epic #246 L2) \u2014 verified PASS on engine 1.100.1; CWE-125 unvalidated array index",
+  "findings": [
+    {
+      "file": "vulnerable.cs",
+      "line": 8,
+      "severity": "ERROR"
+    }
+  ]
+}

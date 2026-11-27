@@ -1,0 +1,47 @@
+# Java 17 (Java17 grammar + Labyrinth.extension overlay) SAST rules.
+rules:
+  - id: java-sql-injection
+    severity: ERROR
+    message: "SQL query is built from untrusted request data; use PreparedStatement parameters instead."
+    type: taint
+    sources:
+      - pattern: "request.getParameter($DATA)"
+    sinks:
+      - pattern: "statement.executeQuery($SQL)"
+      - pattern: "statement.executeUpdate($SQL)"
+      - pattern: "statement.execute($SQL)"
+    propagators:
+      - pattern: "$SQL = $DATA"
+        from: $DATA
+        to: $SQL
+      - pattern: "$SQL = $PREFIX + $DATA"
+        from: $DATA
+        to: $SQL
+    sanitizers:
+      - pattern: "preparedStatement.setString($IDX, $SQL)"
+  - id: java-command-injection
+    severity: ERROR
+    message: "OS command is built from untrusted request data; avoid Runtime.exec with user input."
+    type: taint
+    sources:
+      - pattern: "request.getParameter($DATA)"
+    sinks:
+      - pattern: "Runtime.getRuntime().exec($CMD)"
+      - pattern: "new ProcessBuilder($CMD).start()"
+    propagators:
+      - pattern: "$CMD = $DATA"
+        from: $DATA
+        to: $CMD
+      - pattern: "$CMD = $PREFIX + $DATA"
+        from: $DATA
+        to: $CMD
+  - id: java-native-deserialization
+    severity: ERROR
+    message: "Java native deserialization of untrusted data can lead to remote code execution; use a safe format."
+    type: search
+    pattern: "new ObjectInputStream($IN).readObject()"
+  - id: java-weak-crypto-md5
+    severity: WARNING
+    message: "MD5 is a broken hash function; use SHA-256 or stronger for security purposes."
+    type: search
+    pattern: 'MessageDigest.getInstance("MD5")'

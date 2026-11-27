@@ -1,0 +1,8 @@
+{
+  "rule": "csharp-insecure-deserialization",
+  "cwe": "CWE-502",
+  "source": "Authored for Minotaur-Labyrinth; CWE-502 BinaryFormatter.Deserialize pattern (cf. Juliet CWE-502 family, CC0 1.0)",
+  "findings": [
+    { "file": "vulnerable.cs", "line": 7, "severity": "ERROR" }
+  ]
+}

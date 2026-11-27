@@ -1,0 +1,8 @@
+{
+  "rule": "cpp-command-injection",
+  "cwe": "CWE-78",
+  "source": "Authored for Minotaur-Labyrinth; sink system() per NIST/SAMATE Juliet C/C++ 1.3 CWE-78 (CC0 1.0), source adapted to argv",
+  "findings": [
+    { "file": "vulnerable.cpp", "line": 8, "severity": "ERROR" }
+  ]
+}

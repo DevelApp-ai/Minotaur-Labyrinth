@@ -1,0 +1,12 @@
+{
+  "rule": "csharp-modulo-by-constant-zero",
+  "cwe": "CWE-369",
+  "source": "Ported from DevelApp-ai/Minotaur rules/csharp10 (PR #251, epic #246 L2) \u2014 verified PASS on engine 1.100.1; CWE-369 modulo by zero",
+  "findings": [
+    {
+      "file": "vulnerable.cs",
+      "line": 5,
+      "severity": "ERROR"
+    }
+  ]
+}

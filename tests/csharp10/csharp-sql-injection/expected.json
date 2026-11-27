@@ -1,0 +1,8 @@
+{
+  "rule": "csharp-sql-injection",
+  "cwe": "CWE-89",
+  "source": "Authored for Minotaur-Labyrinth; pattern modeled on OWASP Benchmark CWE-89 servlets (OWASP/Benchmark, Apache-2.0) adapted to ASP.NET Request.Query",
+  "findings": [
+    { "file": "vulnerable.cs", "line": 10, "severity": "ERROR" }
+  ]
+}

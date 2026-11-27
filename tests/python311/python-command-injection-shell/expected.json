@@ -1,0 +1,8 @@
+{
+  "rule": "python-command-injection-shell",
+  "cwe": "CWE-78",
+  "source": "Authored for Minotaur-Labyrinth; CWE-78 subprocess shell=True pattern (cf. PySASTBench 108 Python CVEs)",
+  "findings": [
+    { "file": "vulnerable.py", "line": 7, "severity": "ERROR" }
+  ]
+}

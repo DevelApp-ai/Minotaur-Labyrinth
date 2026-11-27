@@ -1,0 +1,36 @@
+name: run-corpus
+
+# Engine-level corpus run via Minotaur.Cli (`labyrinth verify-corpus`).
+# Signal run against Minotaur main (now on StepLexer/StepParser 1.100.1 via
+# #273, incl. the canonical tiling tie-break; upstream-verified fix for the
+# exploratory-path hang, see ENFAStepLexer-StepParser#176). Measured: run
+# completes in <1min (no more hang); PASS count and the remaining FAILs are
+# engine pattern-surface gaps tracked in Minotaur#278 (receiver-index = #280,
+# multi-arg comma split = #279, plus object literals, `new`, chained calls,
+# keyword args, `::` paths, blocks, xml content). Becomes a REQUIRED check once
+# the #278 shapes land and the corpus is green (tracked in #3 / #5, tracker #9).
+# Advisory until then.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  engine-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: DevelApp-ai/Minotaur
+          ref: main
+          path: minotaur
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - run: dotnet build minotaur/src/Minotaur.Cli/Minotaur.Cli.csproj --configuration Release
+      - run: dotnet minotaur/src/Minotaur.Cli/bin/Release/net8.0/Minotaur.Cli.dll labyrinth verify-corpus --rules rules --tests tests

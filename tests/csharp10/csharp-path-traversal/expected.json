@@ -1,0 +1,8 @@
+{
+  "rule": "csharp-path-traversal",
+  "cwe": "CWE-22",
+  "source": "Authored for Minotaur-Labyrinth; CWE-22 file path from request data (OWASP Benchmark CWE-22 pattern, Apache-2.0, adapted to ASP.NET)",
+  "findings": [
+    { "file": "vulnerable.cs", "line": 8, "severity": "ERROR" }
+  ]
+}

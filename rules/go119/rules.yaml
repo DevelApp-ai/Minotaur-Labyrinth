@@ -1,0 +1,38 @@
+# Go 1.19 (Go119 grammar + Labyrinth.extension overlay) SAST rules.
+rules:
+  - id: go-sql-injection
+    severity: ERROR
+    message: "SQL query is built from untrusted request data; use parameterized queries instead."
+    type: taint
+    sources:
+      - pattern: "r.URL.Query().Get($DATA)"
+      - pattern: "r.FormValue($DATA)"
+    sinks:
+      - pattern: "db.Query($SQL)"
+      - pattern: "db.Exec($SQL)"
+    propagators:
+      - pattern: "$SQL = $DATA"
+        from: $DATA
+        to: $SQL
+      - pattern: "$SQL = fmt.Sprintf($FMT, $DATA)"
+        from: $DATA
+        to: $SQL
+      - pattern: "$SQL = $PREFIX + $DATA"
+        from: $DATA
+        to: $SQL
+    sanitizers:
+      - pattern: "db.Query($SQL, $ARGS...)"
+  - id: go-command-injection
+    severity: ERROR
+    message: "Shell command is built from untrusted request data; avoid exec.Command with user input."
+    type: taint
+    sources:
+      - pattern: "r.URL.Query().Get($DATA)"
+      - pattern: "r.FormValue($DATA)"
+    sinks:
+      - pattern: 'exec.Command("sh", "-c", $CMD)'
+      - pattern: "exec.Command($PROG, $CMD)"
+    propagators:
+      - pattern: "$CMD = $DATA"
+        from: $DATA
+        to: $CMD

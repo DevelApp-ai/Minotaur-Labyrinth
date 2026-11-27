@@ -1,0 +1,8 @@
+{
+  "rule": "js-command-injection",
+  "cwe": "CWE-78",
+  "source": "Authored for Minotaur-Labyrinth; CWE-78 child_process.exec shape (cf. SecBench.js command-injection cases)",
+  "findings": [
+    { "file": "vulnerable.js", "line": 6, "severity": "ERROR" }
+  ]
+}

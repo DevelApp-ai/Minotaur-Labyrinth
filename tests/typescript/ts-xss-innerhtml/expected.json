@@ -1,0 +1,8 @@
+{
+  "rule": "ts-xss-innerhtml",
+  "cwe": "CWE-79",
+  "source": "Authored for Minotaur-Labyrinth; CWE-79 req.query -> innerHTML shape (cf. SecBench.js XSS cases)",
+  "findings": [
+    { "file": "vulnerable.ts", "line": 6, "severity": "ERROR" }
+  ]
+}

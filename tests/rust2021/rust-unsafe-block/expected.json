@@ -1,0 +1,8 @@
+{
+  "rule": "rust-unsafe-block",
+  "cwe": "CWE-133",
+  "source": "Authored for Minotaur-Labyrinth; CWE-133 unsafe block pattern (rustc lint unsafe_code analog)",
+  "findings": [
+    { "file": "vulnerable.rs", "line": 3, "severity": "WARNING" }
+  ]
+}

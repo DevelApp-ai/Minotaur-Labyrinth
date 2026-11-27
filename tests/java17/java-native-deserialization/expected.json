@@ -1,0 +1,8 @@
+{
+  "rule": "java-native-deserialization",
+  "cwe": "CWE-502",
+  "source": "Authored for Minotaur-Labyrinth; CWE-502 ObjectInputStream.readObject pattern (Juliet CWE-502 family, CC0 1.0, shape)",
+  "findings": [
+    { "file": "vulnerable.java", "line": 7, "severity": "ERROR" }
+  ]
+}

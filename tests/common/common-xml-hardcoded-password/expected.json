@@ -1,0 +1,8 @@
+{
+  "rule": "common-xml-hardcoded-password",
+  "cwe": "CWE-798",
+  "source": "Authored for Minotaur-Labyrinth (CWE-798 hardcoded credentials); language-neutral config-grammar case",
+  "findings": [
+    { "file": "vulnerable.xml", "line": 2, "severity": "ERROR" }
+  ]
+}

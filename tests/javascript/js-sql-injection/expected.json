@@ -1,0 +1,8 @@
+{
+  "rule": "js-sql-injection",
+  "cwe": "CWE-89",
+  "source": "Authored for Minotaur-Labyrinth; CWE-89 node SQL concatenation shape (cf. SecBench.js SQL-injection cases)",
+  "findings": [
+    { "file": "vulnerable.js", "line": 5, "severity": "ERROR" }
+  ]
+}

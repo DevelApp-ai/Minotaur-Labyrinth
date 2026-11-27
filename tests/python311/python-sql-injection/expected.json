@@ -1,0 +1,8 @@
+{
+  "rule": "python-sql-injection",
+  "cwe": "CWE-89",
+  "source": "Authored for Minotaur-Labyrinth; pattern modeled on OWASP Benchmark CWE-89 (Apache-2.0) adapted to Flask; see also PySASTBench (108 Python CVEs)",
+  "findings": [
+    { "file": "vulnerable.py", "line": 7, "severity": "ERROR" }
+  ]
+}

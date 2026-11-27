@@ -1,0 +1,19 @@
+# Rust 2021 (Rust2021 grammar + Labyrinth.extension overlay) SAST rules.
+rules:
+  - id: rust-command-injection
+    severity: ERROR
+    message: "Shell command is built from untrusted input; avoid 'sh -c' with user-controlled command strings."
+    type: taint
+    sources:
+      - pattern: "std::env::args()"
+    sinks:
+      - pattern: 'Command::new("sh").arg("-c").arg($CMD)'
+    propagators:
+      - pattern: "$CMD = $DATA"
+        from: $DATA
+        to: $CMD
+  - id: rust-unsafe-block
+    severity: WARNING
+    message: "unsafe block: verify the invariants of the unsafe code, or use a safe abstraction."
+    type: search
+    pattern: "unsafe { ... }"
