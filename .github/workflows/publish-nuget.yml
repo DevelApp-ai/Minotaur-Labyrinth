@@ -1,0 +1,41 @@
+name: Publish NuGet package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore (with NU1301 retry guards)
+        run: dotnet restore src/Minotaur.Labyrinth/Minotaur.Labyrinth.csproj || (sleep 20 && dotnet restore src/Minotaur.Labyrinth/Minotaur.Labyrinth.csproj) || (sleep 40 && dotnet restore src/Minotaur.Labyrinth/Minotaur.Labyrinth.csproj)
+
+      - name: Build Release (warnings as errors)
+        run: dotnet build src/Minotaur.Labyrinth/Minotaur.Labyrinth.csproj -c Release --no-restore -p:TreatWarningsAsErrors=true
+
+      - name: Test
+        run: |
+          dotnet restore src/Minotaur.Labyrinth.Tests/Minotaur.Labyrinth.Tests.csproj || (sleep 20 && dotnet restore src/Minotaur.Labyrinth.Tests/Minotaur.Labyrinth.Tests.csproj)
+          dotnet build src/Minotaur.Labyrinth.Tests/Minotaur.Labyrinth.Tests.csproj -c Release --no-restore -p:TreatWarningsAsErrors=true
+          dotnet test src/Minotaur.Labyrinth.Tests/Minotaur.Labyrinth.Tests.csproj -c Release --no-build
+
+      - name: Pack
+        run: dotnet pack src/Minotaur.Labyrinth/Minotaur.Labyrinth.csproj -c Release --no-build -o artifacts
+
+      - name: Push to GitHub Packages
+        run: dotnet nuget push "artifacts/*.nupkg" --source https://nuget.pkg.github.com/DevelApp-ai/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
