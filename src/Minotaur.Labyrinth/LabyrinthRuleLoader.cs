@@ -1,0 +1,365 @@
+using System.Text;
+using YamlDotNet.Core;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+
+namespace Minotaur.Labyrinth;
+
+/// <summary>
+/// The result of validating a <see cref="LabyrinthRuleSet"/>.
+/// </summary>
+public sealed class LabyrinthValidationResult
+{
+    /// <summary>Validation errors, empty when the rule set is valid.</summary>
+    public IReadOnlyList<string> Errors { get; init; } = Array.Empty<string>();
+
+    /// <summary>True when <see cref="Errors"/> is empty.</summary>
+    [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false)]
+    public bool IsValid => Errors.Count == 0;
+}
+
+/// <summary>
+/// Layer 1 rule loader (issue #101): loads Labyrinth rule files — the specialized
+/// YAML format defined by the Labyrinth grammar (Minotaur-Grammars specialized/labyrinth) —
+/// and validates them.
+/// </summary>
+public sealed class LabyrinthRuleLoader
+{
+    private readonly IDeserializer _deserializer;
+
+    public LabyrinthRuleLoader()
+    {
+        _deserializer = new DeserializerBuilder()
+            .WithNamingConvention(HyphenatedNamingConvention.Instance)
+            .IgnoreUnmatchedProperties()
+            .Build();
+    }
+
+    /// <summary>
+    /// Parses a Labyrinth rule file from YAML text.
+    /// </summary>
+    /// <exception cref="LabyrinthRuleException">Thrown on malformed YAML or schema violations.</exception>
+    public LabyrinthRuleSet Parse(string yaml)
+    {
+        if (string.IsNullOrWhiteSpace(yaml))
+        {
+            throw new LabyrinthRuleException("Rule file must not be empty.");
+        }
+
+        LabyrinthRuleSet ruleSet;
+        try
+        {
+            ruleSet = _deserializer.Deserialize<LabyrinthRuleSet>(yaml);
+        }
+        catch (YamlException ex)
+        {
+            throw new LabyrinthRuleException($"Invalid rule file YAML: {ex.Message}", ex);
+        }
+
+        if (ruleSet is null || ruleSet.Rules.Count == 0)
+        {
+            throw new LabyrinthRuleException($"Rule file must contain a non-empty '{LabyrinthRuleSet.RootKey}:' list.");
+        }
+
+        return ruleSet;
+    }
+
+    /// <summary>
+    /// Loads and validates a Labyrinth rule file from YAML text.
+    /// </summary>
+    /// <exception cref="LabyrinthRuleException">Thrown when validation fails.</exception>
+    public LabyrinthRuleSet Load(string yaml)
+    {
+        var ruleSet = Parse(yaml);
+        var result = Validate(ruleSet);
+        if (!result.IsValid)
+        {
+            throw new LabyrinthRuleException(
+                "Invalid Labyrinth rule file:\n  - " + string.Join("\n  - ", result.Errors));
+        }
+
+        return ruleSet;
+    }
+
+    /// <summary>
+    /// Validates a rule set without throwing. Checks:
+    /// <list type="bullet">
+    /// <item>rule ids are present and unique</item>
+    /// <item>severity and type values are known</item>
+    /// <item>search rules define a pattern; taint rules define sources and sinks</item>
+    /// <item>propagator <c>from</c>/<c>to</c> metavariables occur in the propagator pattern</item>
+    /// <item>all patterns tokenize cleanly (metavariable/ellipsis well-formedness)</item>
+    /// </list>
+    /// </summary>
+    public LabyrinthValidationResult Validate(LabyrinthRuleSet ruleSet)
+    {
+        var errors = new List<string>();
+        if (ruleSet.Rules.Count == 0)
+        {
+            errors.Add($"Rule file must contain a non-empty '{LabyrinthRuleSet.RootKey}:' list.");
+            return new LabyrinthValidationResult { Errors = errors };
+        }
+
+        var ids = new HashSet<string>();
+        for (var i = 0; i < ruleSet.Rules.Count; i++)
+        {
+            var rule = ruleSet.Rules[i];
+            var label = $"rules[{i}]";
+
+            if (string.IsNullOrWhiteSpace(rule.Id))
+            {
+                errors.Add($"{label}: 'id' is required.");
+            }
+            else if (!ids.Add(rule.Id))
+            {
+                errors.Add($"{label}: duplicate rule id '{rule.Id}'.");
+            }
+
+            try
+            {
+                _ = rule.SeverityValue;
+            }
+            catch (LabyrinthRuleException ex)
+            {
+                errors.Add($"{label} ({rule.Id}): {ex.Message}");
+            }
+
+            try
+            {
+                _ = rule.TypeValue;
+            }
+            catch (LabyrinthRuleException ex)
+            {
+                errors.Add($"{label} ({rule.Id}): {ex.Message}");
+                continue;
+            }
+
+            if (rule.TypeValue == LabyrinthRuleType.Search)
+            {
+                ValidateSearchRule(rule, label, errors);
+            }
+            else
+            {
+                ValidateTaintRule(rule, label, errors);
+            }
+
+            if (rule.Paths is not null)
+            {
+                ValidatePathFilter(rule.Paths, label, rule.Id, errors);
+            }
+
+            if (!string.IsNullOrWhiteSpace(rule.Fix))
+            {
+                // Every metavariable referenced by the fix must be bindable by the rule.
+                var defined = new HashSet<string>(LabyrinthRuleSet.DefinedMetavariables(rule), StringComparer.Ordinal);
+                foreach (var name in LabyrinthFixInterpolator.MetavariablesIn(rule.Fix))
+                {
+                    if (!defined.Contains(name))
+                    {
+                        errors.Add($"{label} ({rule.Id}): 'fix' references '${name}' which does not occur in any pattern of the rule.");
+                    }
+                }
+            }
+
+            if (rule.Metadata is not null)
+            {
+                foreach (var key in rule.Metadata.Keys)
+                {
+                    if (string.IsNullOrWhiteSpace(key))
+                    {
+                        errors.Add($"{label} ({rule.Id}): 'metadata' keys must be non-empty.");
+                    }
+                }
+            }
+        }
+
+        return new LabyrinthValidationResult { Errors = errors };
+    }
+
+    private static void ValidatePathFilter(LabyrinthPathFilter paths, string label, string ruleId, List<string> errors)
+    {
+        foreach (var (list, key) in new[] { (paths.Include, "include"), (paths.Exclude, "exclude") })
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (string.IsNullOrWhiteSpace(list[i]))
+                {
+                    errors.Add($"{label} ({ruleId}): 'paths.{key}[{i}]' must be a non-empty glob.");
+                }
+            }
+        }
+    }
+
+    private static void ValidateSearchRule(LabyrinthRule rule, string label, List<string> errors)
+    {
+        if (rule.Sources is { Count: > 0 } || rule.Sinks is { Count: > 0 })
+        {
+            errors.Add($"{label} ({rule.Id}): 'sources'/'sinks' are only valid for type 'taint'.");
+        }
+
+        if (string.IsNullOrWhiteSpace(rule.Pattern))
+        {
+            errors.Add($"{label} ({rule.Id}): search rules require a 'pattern'.");
+        }
+        else
+        {
+            ValidateFocusMetavariable(rule, label, new[] { rule.Pattern }, "the search pattern", errors);
+        }
+    }
+
+    /// <summary>
+    /// Validates <c>focus-metavariable</c>: when set it must occur in one of
+    /// <paramref name="allowedPatterns"/> (raw pattern texts: the search pattern, or
+    /// the taint sink positive patterns), otherwise the focus could never bind.
+    /// </summary>
+    private static void ValidateFocusMetavariable(
+        LabyrinthRule rule, string label, IEnumerable<string> allowedPatterns, string scope, List<string> errors)
+    {
+        if (string.IsNullOrWhiteSpace(rule.FocusMetavariable))
+        {
+            return;
+        }
+
+        var focus = rule.FocusMetavariable.Trim().TrimStart('$');
+        if (focus.Length == 0)
+        {
+            errors.Add($"{label} ({rule.Id}): 'focus-metavariable' must name a metavariable (e.g. \"$DATA\").");
+            return;
+        }
+
+        var defined = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var pattern in allowedPatterns)
+        {
+            foreach (var name in LabyrinthMetavariables.DistinctNamesIn(pattern))
+            {
+                defined.Add(name);
+            }
+        }
+
+        if (!defined.Contains(focus))
+        {
+            errors.Add($"{label} ({rule.Id}): 'focus-metavariable' '${focus}' does not occur in {scope}.");
+        }
+    }
+
+    private static void ValidateTaintRule(LabyrinthRule rule, string label, List<string> errors)
+    {
+        if (!string.IsNullOrWhiteSpace(rule.Pattern))
+        {
+            errors.Add($"{label} ({rule.Id}): 'pattern' is only valid for type 'search'; taint rules use 'sources'/'sinks'.");
+        }
+
+        if (rule.Sources is not { Count: > 0 })
+        {
+            errors.Add($"{label} ({rule.Id}): taint rules require at least one source.");
+        }
+        else
+        {
+            ValidatePatternList(rule.Sources, label, rule.Id, "sources", errors);
+        }
+
+        if (rule.Sinks is not { Count: > 0 })
+        {
+            errors.Add($"{label} ({rule.Id}): taint rules require at least one sink.");
+        }
+        else
+        {
+            ValidatePatternList(rule.Sinks, label, rule.Id, "sinks", errors);
+            // The focus of a taint finding is the sink match: the metavariable must
+            // occur in a sink's positive pattern (plain pattern or an either alternative).
+            var sinkPatterns = rule.Sinks
+                .Where(e => e is not null)
+                .SelectMany(e => e!.PatternEither is { Count: > 0 }
+                    ? e.PatternEither.Where(a => a is not null).Select(a => a!.Pattern)
+                    : new[] { e.Pattern });
+            ValidateFocusMetavariable(rule, label, sinkPatterns, "any sink pattern", errors);
+        }
+
+        if (rule.Sanitizers is { Count: > 0 })
+        {
+            ValidatePatternList(rule.Sanitizers, label, rule.Id, "sanitizers", errors);
+        }
+
+        if (rule.Propagators is { Count: > 0 })
+        {
+            for (var i = 0; i < rule.Propagators.Count; i++)
+            {
+                var prop = rule.Propagators[i];
+                var propLabel = $"{label}.{rule.Id}.propagators[{i}]";
+                if (prop is null || string.IsNullOrWhiteSpace(prop.Pattern))
+                {
+                    errors.Add($"{propLabel}: 'pattern' is required.");
+                    continue;
+                }
+
+                var defined = LabyrinthMetavariables.DistinctNamesIn(prop.Pattern);
+                foreach (var (name, key) in new[] { (prop.From, "from"), (prop.To, "to") })
+                {
+                    var normalized = name?.TrimStart('$') ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(normalized))
+                    {
+                        errors.Add($"{propLabel}: '{key}' is required.");
+                    }
+                    else if (!defined.Contains(normalized, StringComparer.Ordinal))
+                    {
+                        errors.Add(
+                            $"{propLabel}: '{key}' metavariable '${normalized}' does not occur in the propagator pattern.");
+                    }
+                }
+            }
+        }
+    }
+
+    private static void ValidatePatternList(List<LabyrinthPatternEntry> entries, string label, string ruleId, string key, List<string> errors)
+    {
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var entry = entries[i];
+            var entryLabel = $"{label}.{ruleId}.{key}[{i}]";
+            if (entry is null)
+            {
+                errors.Add($"{entryLabel}: 'pattern' is required.");
+                continue;
+            }
+
+            var hasPattern = !string.IsNullOrWhiteSpace(entry.Pattern);
+            var hasEither = entry.PatternEither is { Count: > 0 };
+            if (hasPattern && hasEither)
+            {
+                errors.Add($"{entryLabel}: 'pattern' and 'pattern-either' are mutually exclusive.");
+                continue;
+            }
+
+            if (!hasPattern && !hasEither)
+            {
+                errors.Add($"{entryLabel}: 'pattern' is required.");
+                continue;
+            }
+
+            if (hasEither
+                && (!string.IsNullOrWhiteSpace(entry.PatternNot) || !string.IsNullOrWhiteSpace(entry.PatternInside)))
+            {
+                errors.Add(
+                    $"{entryLabel}: 'pattern-not'/'pattern-inside' must be placed inside the pattern-either alternatives, not beside 'pattern-either'.");
+                continue;
+            }
+
+            if (hasEither)
+            {
+                for (var j = 0; j < entry.PatternEither!.Count; j++)
+                {
+                    var alt = entry.PatternEither[j];
+                    if (alt is null || string.IsNullOrWhiteSpace(alt.Pattern))
+                    {
+                        errors.Add($"{entryLabel}.pattern-either[{j}]: 'pattern' is required.");
+                    }
+                    else if (alt.PatternEither is { Count: > 0 })
+                    {
+                        errors.Add($"{entryLabel}.pattern-either[{j}]: nested pattern-either is not supported.");
+                    }
+                }
+            }
+        }
+    }
+
+}

@@ -1,0 +1,108 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>Minotaur-Labyrinth SAST engine: Semgrep-style YAML rule schema, pattern compiler (DevelApp.StepLexer/StepParser pipeline), taint/search analysis engine, console + SARIF reporting, and the binary rule pack format (.labyrinthpack, gzip + grammar-hash staleness guard) for shipping rule sets as update packages. Hosted in DevelApp-ai/Minotaur-Labyrinth.</Description>
+    <PackageId>develapp.labyrinth</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>DevelApp.ai ApS</Authors>
+    <Company>DevelApp.ai ApS</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/DevelApp-ai/Minotaur-Labyrinth</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/DevelApp-ai/Minotaur-Labyrinth</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <LabyrinthGrammarsRoot>https://raw.githubusercontent.com/DevelApp-ai/Minotaur-Grammars/main</LabyrinthGrammarsRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
+    <PackageReference Include="DevelApp.StepLexer" Version="1.100.1" />
+    <PackageReference Include="DevelApp.StepParser" Version="1.100.1" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.4" />
+  </ItemGroup>
+
+  <!--
+    Grammars are owned by the Minotaur-Grammars repository and copied at build
+    time (per maintainer direction: Minotaur does not embed grammars). Disable
+    locally with -p:SkipGrammarDownload=true.
+  -->
+  <Target Name="DownloadLabyrinthGrammars"
+          BeforeTargets="PrepareForBuild"
+          Condition="'$(SkipGrammarDownload)' != 'true'">
+    <PropertyGroup>
+      <LabyrinthGrammarDir>$(MSBuildProjectDirectory)\Grammars</LabyrinthGrammarDir>
+    </PropertyGroup>
+    <MakeDir Directories="$(LabyrinthGrammarDir)" />
+    <DownloadFile SourceUrl="$(LabyrinthGrammarsRoot)/specialized/labyrinth/Labyrinth.grammar"
+                  DestinationFolder="$(LabyrinthGrammarDir)" />
+    <DownloadFile SourceUrl="$(LabyrinthGrammarsRoot)/data-config/yaml/YAML.grammar"
+                  DestinationFolder="$(LabyrinthGrammarDir)" />
+
+    <!--
+      Labyrinth target grammars: the languages Labyrinth security-check rules
+      are written against (LabyrinthTargetGrammars). Each target grammar is
+      downloaded together with its optional Labyrinth.extension overlay, which
+      adds the pattern operators ($NAME metavariable, ... ellipsis) on top of
+      the language grammar via StepParser overlay composition
+      (DevelApp-ai/ENFAStepLexer-StepParser#65, #66; Minotaur-Grammars#184).
+    -->
+    <ItemGroup>
+      <LabyrinthTargetGrammar Include="programming-languages/c17" MainFile="C17.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/classicasp" MainFile="ClassicASP.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/clojure" MainFile="Clojure.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/cobol2023" MainFile="COBOL2023.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/cpp20" MainFile="Cpp20.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/csharp10" MainFile="CSharp10.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/css" MainFile="CSS.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/dart" MainFile="Dart.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/elixir" MainFile="Elixir.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/erlang" MainFile="Erlang.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/fsharp" MainFile="FSharp.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/go119" MainFile="Go119.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/haskell" MainFile="Haskell.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/htmlembedded" MainFile="HTMLEmbedded.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/java8" MainFile="Java8.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/java17" MainFile="Java17.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/javascript" MainFile="JavaScript.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/javascriptes2022" MainFile="JavaScriptES2022.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/json" MainFile="JSON.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/jsonschema" MainFile="JSONSchema.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/kotlin" MainFile="Kotlin.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/lua" MainFile="Lua.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/perl" MainFile="Perl.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/php85" MainFile="PHP85.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/pl1" MainFile="PL1.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/python311" MainFile="Python311.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/r" MainFile="RLang.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/ruby" MainFile="Ruby.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/rust2021" MainFile="Rust2021.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/scala" MainFile="Scala.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/swift" MainFile="Swift.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/typescript" MainFile="TypeScript.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/visualbasic" MainFile="VisualBasic.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/webassembly20" MainFile="WebAssembly20.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/xaml" MainFile="XAML.grammar" />
+      <LabyrinthTargetGrammar Include="programming-languages/xml" MainFile="XML.grammar" />
+    </ItemGroup>
+    <MakeDir Directories="@(LabyrinthTargetGrammar->'$(LabyrinthGrammarDir)\targets\%(Identity)')" />
+    <DownloadFile SourceUrl="$(LabyrinthGrammarsRoot)/%(LabyrinthTargetGrammar.Identity)/%(LabyrinthTargetGrammar.MainFile)"
+                  DestinationFolder="@(LabyrinthTargetGrammar->'$(LabyrinthGrammarDir)\targets\%(Identity)')" />
+    <DownloadFile SourceUrl="$(LabyrinthGrammarsRoot)/%(LabyrinthTargetGrammar.Identity)/Labyrinth.extension"
+                  DestinationFolder="@(LabyrinthTargetGrammar->'$(LabyrinthGrammarDir)\targets\%(Identity)')" />
+    <ItemGroup>
+      <None Include="$(LabyrinthGrammarDir)\*.grammar"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false" />
+      <None Include="$(LabyrinthGrammarDir)\targets\**\*.*"
+            CopyToOutputDirectory="PreserveNewest"
+            Visible="false" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D4ADA3D-D63C-43E1-A55F-9B9BD254643C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minotaur.Labyrinth", "src\Minotaur.Labyrinth\Minotaur.Labyrinth.csproj", "{D53F3666-38C2-430E-A5E0-1EE33E225718}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minotaur.Labyrinth.Tests", "src\Minotaur.Labyrinth.Tests\Minotaur.Labyrinth.Tests.csproj", "{F42874AE-D0B9-43F6-BDBF-04ADC9443E9F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D53F3666-38C2-430E-A5E0-1EE33E225718}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D53F3666-38C2-430E-A5E0-1EE33E225718}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D53F3666-38C2-430E-A5E0-1EE33E225718}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D53F3666-38C2-430E-A5E0-1EE33E225718}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F42874AE-D0B9-43F6-BDBF-04ADC9443E9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F42874AE-D0B9-43F6-BDBF-04ADC9443E9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F42874AE-D0B9-43F6-BDBF-04ADC9443E9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F42874AE-D0B9-43F6-BDBF-04ADC9443E9F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D53F3666-38C2-430E-A5E0-1EE33E225718} = {3D4ADA3D-D63C-43E1-A55F-9B9BD254643C}
+		{F42874AE-D0B9-43F6-BDBF-04ADC9443E9F} = {3D4ADA3D-D63C-43E1-A55F-9B9BD254643C}
+	EndGlobalSection
+EndGlobal

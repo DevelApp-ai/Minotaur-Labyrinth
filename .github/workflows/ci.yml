@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore (with NU1301 retry guards)
+        run: dotnet restore Minotaur-Labyrinth.sln || (sleep 20 && dotnet restore Minotaur-Labyrinth.sln) || (sleep 40 && dotnet restore Minotaur-Labyrinth.sln)
+
+      - name: Build Debug (warnings as errors)
+        run: dotnet build Minotaur-Labyrinth.sln -c Debug --no-restore -p:TreatWarningsAsErrors=true
+
+      - name: Build Release (warnings as errors)
+        run: dotnet build Minotaur-Labyrinth.sln -c Release --no-restore -p:TreatWarningsAsErrors=true
+
+      - name: Test
+        run: dotnet test src/Minotaur.Labyrinth.Tests/Minotaur.Labyrinth.Tests.csproj -c Debug --no-build
+
+      - name: Format check
+        run: dotnet format Minotaur-Labyrinth.sln --verify-no-changes
